@@ -1006,6 +1006,30 @@ pub(crate) async fn analyse_ecmascript_module_internal(
                     },
                 }
             }
+            Effect::Worker {
+                url,
+                options,
+                ast_path,
+                span,
+                in_try,
+            } => {
+                if let Some(ignored) = &ignore_effect_span {
+                    if *ignored == span {
+                        continue;
+                    }
+                }
+                handle_worker(
+                    &ast_path,
+                    span,
+                    url,
+                    options,
+                    &analysis_state,
+                    &add_effects,
+                    &mut analysis,
+                    in_try,
+                )
+                .await?;
+            }
             Effect::Call {
                 func,
                 args,
@@ -1193,6 +1217,19 @@ pub(crate) async fn analyse_ecmascript_module_internal(
             Some(TreeShakingMode::ReexportsOnly)
         ))
         .await
+}
+
+async fn handle_worker<G: Fn(Vec<Effect>) + Send + Sync>(
+    ast_path: &[AstParentKind],
+    span: Span,
+    url: JsValue,
+    options: Option<JsValue>,
+    state: &AnalysisState<'_>,
+    add_effects: &G,
+    analysis: &mut AnalyzeEcmascriptModuleResultBuilder,
+    in_try: bool,
+) -> Result<()> {
+    todo!("handle_worker {:?} {:?}", url, options);
 }
 
 fn handle_call_boxed<'a, G: Fn(Vec<Effect>) + Send + Sync + 'a>(
